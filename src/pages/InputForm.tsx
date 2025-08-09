@@ -37,6 +37,14 @@ const goalOptions = [
   { label: "체중 감량", value: "fat-loss" },
 ] as const;
 
+const activityLevelOptions = [
+  { label: "좌식 생활 (운동 안함)", value: "sedentary" },
+  { label: "가벼운 활동 (주 1-3회 운동)", value: "light" },
+  { label: "보통 활동 (주 3-5회 운동)", value: "moderate" },
+  { label: "활발한 활동 (주 6-7회 운동)", value: "active" },
+  { label: "매우 활발한 활동 (하루 2회 이상)", value: "very-active" },
+] as const;
+
 const FormSchema = z.object({
   age: z.preprocess(
     (val) => (val === "" || val == null ? undefined : Number(val)),
@@ -62,6 +70,8 @@ const FormSchema = z.object({
   ),
 
   goal: z.string().min(1, "식단 목표를 선택해주세요"),
+  
+  activityLevel: z.string().min(1, "활동 수준을 선택해주세요"),
 });
 
 export default function InputForm() {
@@ -271,13 +281,92 @@ export default function InputForm() {
                   )}
                 />
 
+                {/* 활동 수준 */}
+                <FormField
+                  control={form.control}
+                  name="activityLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="px-2">활동 수준</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-between !bg-white !text-black focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value
+                                ? activityLevelOptions.find(
+                                    (a) => a.value === field.value
+                                  )?.label
+                                : "활동 수준 선택"}
+                              <ChevronsUpDown className="opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput placeholder="활동 수준 검색..." />
+                            <CommandList>
+                              <CommandEmpty>결과 없음</CommandEmpty>
+                              <CommandGroup>
+                                {activityLevelOptions.map((a) => (
+                                  <CommandItem
+                                    key={a.value}
+                                    value={a.label}
+                                    onSelect={() =>
+                                      form.setValue("activityLevel", a.value)
+                                    }
+                                  >
+                                    {a.label}
+                                    <Check
+                                      className={cn(
+                                        "ml-auto",
+                                        field.value === a.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* submit */}
-                <Button
-                  type="submit"
-                  className="w-full !bg-white !text-black hover:!bg-[#d8de69] focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base"
-                >
-                  딱 맞는 메뉴를 바로 확인해봐요 🍽️
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    className="flex-1 !bg-white !text-black hover:!bg-[#d8de69] focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base"
+                  >
+                    추천 메뉴 보기
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      const isValid = await form.trigger();
+                      if (isValid) {
+                        const formData = form.getValues();
+                        navigate("/custom", { state: { userData: formData } });
+                      } else {
+                        toast.error("모든 필드를 입력해주세요");
+                      }
+                    }}
+                    variant="outline"
+                    className="flex-1 !bg-white !text-black hover:!bg-[#90c53f] hover:!text-white focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base"
+                  >
+                    직접 만들기
+                  </Button>
+                </div>
               </form>
             </Form>
           </div>

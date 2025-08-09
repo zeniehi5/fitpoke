@@ -20,7 +20,7 @@ export default function Home() {
             {/* logo box */}
             <div className="w-[260px] h-[260px] bg-white/90 shadow-xl flex items-center justify-center">
               <img
-                src="https://cdn.imweb.me/thumbnail/20250712/2525dbb64c007.png"
+                src="https://cdn.imweb.me/thumbnail/20250728/52c5564d5aca0.png"
                 alt="Logo"
                 className="w-[220px] h-[220px] object-contain"
               />
