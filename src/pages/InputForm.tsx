@@ -339,7 +339,7 @@ export default function InputForm() {
                   type="submit"
                   className="w-full !bg-white !text-black hover:!bg-[#d8de69] focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base"
                 >
-                  직접 만들기
+                  영양정보 계산하기
                 </Button>
               </form>
             </Form>

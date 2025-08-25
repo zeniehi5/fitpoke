@@ -24,7 +24,7 @@ export default function CustomBuilder() {
   const navigate = useNavigate();
   const userData = location.state?.userData;
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [panelState, setPanelState] = useState<'expanded' | 'compact' | 'hidden'>('expanded');
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [currentY, setCurrentY] = useState(0);
@@ -66,7 +66,7 @@ export default function CustomBuilder() {
       bmr,
       userData.activityLevel
     );
-    const perMealCalories = dailyCalories / 2.5; // 하루 2.5끼 기준
+    const perMealCalories = Math.round(dailyCalories / 2.5); // 하루 2.5끼 기준
 
     // BMI 상태 판단
     let bmiStatus = "";
@@ -85,11 +85,14 @@ export default function CustomBuilder() {
 
     const perMealGoals: NutritionGoals = {
       calories: perMealCalories,
-      protein: (perMealCalories * 0.3) / 4,
-      carbs: (perMealCalories * 0.4) / 4,
-      fat: (perMealCalories * 0.3) / 9,
+      protein: Math.round((perMealCalories * 0.3) / 4),
+      carbs: Math.round((perMealCalories * 0.4) / 4),
+      fat: Math.round((perMealCalories * 0.3) / 9),
       fiber: 10,
     };
+
+    console.log('perMealCalories:', perMealCalories);
+    console.log('perMealGoals:', perMealGoals);
 
     setNutritionProgress((prev) => ({
       ...prev,
@@ -127,30 +130,30 @@ export default function CustomBuilder() {
     });
 
     const percentages = {
-      calories: Math.min(
+      calories: nutritionProgress.goals.calories > 0 ? Math.min(
         (current.calories / nutritionProgress.goals.calories) * 100,
         100
-      ),
-      protein: Math.min(
+      ) : 0,
+      protein: nutritionProgress.goals.protein > 0 ? Math.min(
         (current.protein / nutritionProgress.goals.protein) * 100,
         100
-      ),
-      carbs: Math.min(
+      ) : 0,
+      carbs: nutritionProgress.goals.carbs > 0 ? Math.min(
         (current.carbs / nutritionProgress.goals.carbs) * 100,
         100
-      ),
-      fat: Math.min((current.fat / nutritionProgress.goals.fat) * 100, 100),
-      fiber: Math.min(
+      ) : 0,
+      fat: nutritionProgress.goals.fat > 0 ? Math.min((current.fat / nutritionProgress.goals.fat) * 100, 100) : 0,
+      fiber: nutritionProgress.goals.fiber > 0 ? Math.min(
         (current.fiber / nutritionProgress.goals.fiber) * 100,
         100
-      ),
+      ) : 0,
     };
 
-    setNutritionProgress({
+    setNutritionProgress((prev) => ({
       current,
-      goals: nutritionProgress.goals,
+      goals: prev.goals,
       percentages,
-    });
+    }));
   };
 
   const handleBaseSelect = (base: BaseTopping) => {
@@ -200,11 +203,19 @@ export default function CustomBuilder() {
 
     const diff = currentY - startY;
     if (diff > 50) {
-      // Swipe down - collapse
-      setIsExpanded(false);
+      // Swipe down - collapse to next state
+      if (panelState === 'expanded') {
+        setPanelState('compact');
+      } else if (panelState === 'compact') {
+        setPanelState('hidden');
+      }
     } else if (diff < -50) {
-      // Swipe up - expand
-      setIsExpanded(true);
+      // Swipe up - expand to previous state
+      if (panelState === 'hidden') {
+        setPanelState('compact');
+      } else if (panelState === 'compact') {
+        setPanelState('expanded');
+      }
     }
 
     setIsDragging(false);
@@ -227,11 +238,19 @@ export default function CustomBuilder() {
 
     const diff = currentY - startY;
     if (diff > 50) {
-      // Swipe down - collapse
-      setIsExpanded(false);
+      // Swipe down - collapse to next state
+      if (panelState === 'expanded') {
+        setPanelState('compact');
+      } else if (panelState === 'compact') {
+        setPanelState('hidden');
+      }
     } else if (diff < -50) {
-      // Swipe up - expand
-      setIsExpanded(true);
+      // Swipe up - expand to previous state
+      if (panelState === 'hidden') {
+        setPanelState('compact');
+      } else if (panelState === 'compact') {
+        setPanelState('expanded');
+      }
     }
 
     setIsDragging(false);
@@ -260,7 +279,9 @@ export default function CustomBuilder() {
 
         <div
           className={`flex-1 container mx-auto px-4 max-w-7xl transition-all duration-500 ${
-            isExpanded ? "pb-4 opacity-30 pointer-events-none" : "pb-80"
+            panelState === 'expanded' ? "pb-4 opacity-30 pointer-events-none" : 
+            panelState === 'compact' ? "pb-64 sm:pb-48" : 
+            "pb-20 sm:pb-16"
           }`}
         >
           <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg">
@@ -283,7 +304,7 @@ export default function CustomBuilder() {
 
                 <TabsContent
                   value="base"
-                  className="mt-4 max-h-96 overflow-y-auto pb-4"
+                  className="mt-4 max-h-[60vh] sm:max-h-96 overflow-y-auto pb-4"
                 >
                   <h3 className="text-sm font-medium mb-4">
                     베이스를 선택해주세요 (1개 필수)
@@ -350,7 +371,7 @@ export default function CustomBuilder() {
                                       <h4 className="font-semibold text-sm leading-tight">
                                         {base.name}
                                       </h4>
-                                      <p className="text-xs text-gray-600">
+                                      {/* <p className="text-xs text-gray-600">
                                         단백질 {base.protein}g
                                       </p>
                                       <p className="text-xs text-gray-600">
@@ -358,7 +379,7 @@ export default function CustomBuilder() {
                                       </p>
                                       <p className="text-xs text-gray-600">
                                         지방 {base.fat}g
-                                      </p>
+                                      </p> */}
                                     </div>
                                   </div>
 
@@ -402,7 +423,7 @@ export default function CustomBuilder() {
 
                 <TabsContent
                   value="toppings"
-                  className="mt-4 max-h-96 overflow-y-auto pb-4"
+                  className="mt-4 max-h-[60vh] sm:max-h-96 overflow-y-auto pb-4"
                 >
                   <h3 className="text-sm font-medium mb-4">
                     토핑을 선택해주세요
@@ -484,7 +505,7 @@ export default function CustomBuilder() {
                                         <h4 className="font-semibold text-sm leading-tight">
                                           {topping.name}
                                         </h4>
-                                        <p className="text-xs text-gray-600">
+                                        {/* <p className="text-xs text-gray-600">
                                           단백질 {topping.protein}g
                                         </p>
                                         <p className="text-xs text-gray-600">
@@ -492,7 +513,7 @@ export default function CustomBuilder() {
                                         </p>
                                         <p className="text-xs text-gray-600">
                                           지방 {topping.fat}g
-                                        </p>
+                                        </p> */}
                                       </div>
                                     </div>
 
@@ -544,7 +565,9 @@ export default function CustomBuilder() {
         <div
           ref={panelRef}
           className={`fixed left-0 right-0 transition-all duration-500 ease-in-out ${
-            isExpanded ? "top-20 bottom-0" : "bottom-0"
+            panelState === 'expanded' ? "top-20 bottom-0" : 
+            panelState === 'compact' ? "bottom-0" :
+            "bottom-0"
           }`}
           style={{
             background:
@@ -554,7 +577,9 @@ export default function CustomBuilder() {
             boxShadow:
               "0 -20px 40px -5px rgba(0, 0, 0, 0.15), 0 -10px 15px -3px rgba(0, 0, 0, 0.1), 0 -4px 6px -2px rgba(0, 0, 0, 0.05)",
             transform: "translateZ(0)",
-            height: isExpanded ? "calc(100vh - 5rem)" : "320px",
+            height: panelState === 'expanded' ? "calc(100vh - 5rem)" : 
+                   panelState === 'compact' ? "220px" : 
+                   "80px",
             overflowY: "auto",
           }}
           onTouchStart={handleTouchStart}
@@ -576,14 +601,16 @@ export default function CustomBuilder() {
           <div className="flex justify-center pb-2">
             <ChevronDown
               className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
-                isExpanded ? "" : "rotate-180"
+                panelState === 'expanded' ? "" : 
+                panelState === 'compact' ? "rotate-90" : 
+                "rotate-180"
               }`}
             />
           </div>
 
           <div className="container mx-auto px-6 pb-8 max-w-7xl">
             {/* User Stats Section - Only show when expanded */}
-            {isExpanded && userData && (
+            {panelState === 'expanded' && userData && (
               <div className="mb-6 space-y-4">
                 {/* User Info */}
                 <div className="bg-white/90 rounded-lg p-4 shadow-sm">
@@ -696,9 +723,10 @@ export default function CustomBuilder() {
               </div>
             )}
 
-            {/* Nutrition Progress Section - Always visible */}
-            <div className="space-y-3">
-              {!isExpanded && (
+            {/* Nutrition Progress Section - Show based on panel state */}
+            {panelState !== 'hidden' && (
+              <div className="space-y-3">
+                {panelState === 'compact' && (
                 <div className="text-center">
                   <h3 className="text-sm font-bold text-gray-800 tracking-wide">
                     영양 정보 (1끼 기준)
@@ -788,6 +816,7 @@ export default function CustomBuilder() {
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>
