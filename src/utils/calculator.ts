@@ -18,9 +18,9 @@ export function calculateBMI(height: number, weight: number): number {
  */
 export function calculateBMR(
   gender: Gender,
-  age: number,
   height: number,
-  weight: number
+  weight: number,
+  age: number
 ): number {
   let bmr: number;
   if (gender === "male") {

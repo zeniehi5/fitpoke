@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import RecommendResult from "./pages/RecommendResult";
 import Home from "./pages/Home";
 import InputForm from "./pages/InputForm";
 import CustomBuilder from "./pages/CustomBuilder";
@@ -11,7 +10,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/form" element={<InputForm />} />
-          <Route path="/result" element={<RecommendResult />} />
           <Route path="/custom" element={<CustomBuilder />} />
         </Routes>
       </BrowserRouter>

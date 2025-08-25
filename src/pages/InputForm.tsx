@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -81,14 +80,7 @@ export default function InputForm() {
   });
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    toast("입력한 정보", {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-    navigate("/result", { state: data });
+    navigate("/custom", { state: { userData: data } });
   };
 
   return (
@@ -169,7 +161,7 @@ export default function InputForm() {
                           type="number"
                           placeholder="예: 28"
                           {...field}
-                          className="bg-white"
+                          className="!bg-white"
                           value={(field.value as number) ?? ""}
                         />
                       </FormControl>
@@ -190,7 +182,7 @@ export default function InputForm() {
                           <Input
                             type="number"
                             placeholder="예: 165"
-                            className="bg-white"
+                            className="!bg-white"
                             {...field}
                             value={(field.value as number) ?? ""}
                           />
@@ -209,7 +201,7 @@ export default function InputForm() {
                           <Input
                             type="number"
                             placeholder="예: 55"
-                            className="bg-white"
+                            className="!bg-white"
                             {...field}
                             value={(field.value as number) ?? ""}
                           />
@@ -343,30 +335,12 @@ export default function InputForm() {
                 />
 
                 {/* submit */}
-                <div className="flex gap-3">
-                  <Button
-                    type="submit"
-                    className="flex-1 !bg-white !text-black hover:!bg-[#d8de69] focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base"
-                  >
-                    추천 메뉴 보기
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={async () => {
-                      const isValid = await form.trigger();
-                      if (isValid) {
-                        const formData = form.getValues();
-                        navigate("/custom", { state: { userData: formData } });
-                      } else {
-                        toast.error("모든 필드를 입력해주세요");
-                      }
-                    }}
-                    variant="outline"
-                    className="flex-1 !bg-white !text-black hover:!bg-[#90c53f] hover:!text-white focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base"
-                  >
-                    직접 만들기
-                  </Button>
-                </div>
+                <Button
+                  type="submit"
+                  className="w-full !bg-white !text-black hover:!bg-[#d8de69] focus-visible:outline-none focus-visible:ring-0 rounded-full shadow-lg transition-colors duration-300 text-base"
+                >
+                  직접 만들기
+                </Button>
               </form>
             </Form>
           </div>
