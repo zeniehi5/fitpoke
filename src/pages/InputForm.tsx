@@ -33,7 +33,7 @@ import { Card } from "@/components/ui/card";
 const goalOptions = [
   { label: "린 메스업", value: "lean-massup" },
   { label: "벌크업", value: "bulkup" },
-  { label: "체중 감량", value: "fat-loss" },
+  { label: "다이어트", value: "fat-loss" },
 ] as const;
 
 const activityLevelOptions = [
