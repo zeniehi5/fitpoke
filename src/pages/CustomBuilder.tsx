@@ -5,7 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { baseToppings } from "@/data/baseToppings";
 import { mainToppings } from "@/data/mainToppings";
-import type { BaseTopping, MainTopping, Topping } from "@/data/toppings";
+import { toppingItems } from "@/data/toppingItems";
+import { sauceToppings } from "@/data/sauceToppings";
+import type { BaseTopping, MainTopping, SauceTopping, Topping } from "@/data/toppingTypes";
 import {
   calculateBMR,
   calculateRecommendedCalories,
@@ -160,7 +162,7 @@ export default function CustomBuilder() {
     setSelectedBase(base);
   };
 
-  const handleToppingToggle = (topping: MainTopping) => {
+  const handleToppingToggle = (topping: MainTopping | SauceTopping) => {
     const existingIndex = selectedToppings.findIndex(
       (t) => t.topping.id === topping.id
     );
@@ -287,18 +289,30 @@ export default function CustomBuilder() {
           <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg">
             <CardContent className="pt-2">
               <Tabs defaultValue="base">
-                <TabsList className="grid w-full grid-cols-2 mb-1">
+                <TabsList className="grid w-full grid-cols-4 mb-1">
                   <TabsTrigger
                     value="base"
                     className="rounded-none border-b-2 border-transparent data-[state=active]:!bg-[#d8de69] data-[state=active]:!border-[#d8de69] data-[state=active]:!text-black"
                   >
-                    베이스 선택
+                    Base
                   </TabsTrigger>
                   <TabsTrigger
-                    value="toppings"
+                    value="main"
                     className="rounded-none border-b-2 border-transparent data-[state=active]:!bg-[#d8de69] data-[state=active]:!border-[#d8de69] data-[state=active]:!text-black"
                   >
-                    토핑 선택
+                    Main
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="topping"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:!bg-[#d8de69] data-[state=active]:!border-[#d8de69] data-[state=active]:!text-black"
+                  >
+                    Topping
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="sauce"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:!bg-[#d8de69] data-[state=active]:!border-[#d8de69] data-[state=active]:!text-black"
+                  >
+                    Sauce
                   </TabsTrigger>
                 </TabsList>
 
@@ -309,253 +323,340 @@ export default function CustomBuilder() {
                   <h3 className="text-sm font-medium mb-4">
                     베이스를 선택해주세요 (1개 필수)
                   </h3>
-                  <Tabs defaultValue="grain">
-                    <TabsList className="grid w-full grid-cols-3 mb-4">
-                      <TabsTrigger
-                        value="grain"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        곡물
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="greens"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        채소
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="noodle"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        면
-                      </TabsTrigger>
-                    </TabsList>
-                    {["grain", "greens", "noodle"].map((category) => (
-                      <TabsContent
-                        key={category}
-                        value={category}
-                        className="grid grid-cols-3 gap-3 mt-2"
-                      >
-                        {baseToppings
-                          .filter((base) => base.category === category)
-                          .map((base) => {
-                            const selected = selectedBase?.id === base.id;
-                            return (
-                              <div
-                                key={base.id}
-                                className="aspect-square cursor-pointer"
-                                onClick={() => handleBaseSelect(base)}
-                                style={{ perspective: "1000px" }}
-                              >
-                                <div
-                                  className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
-                                    selected ? "rotate-y-180" : ""
-                                  }`}
-                                  style={{
-                                    transformStyle: "preserve-3d",
-                                    transform: selected
-                                      ? "rotateY(180deg)"
-                                      : "rotateY(0deg)",
-                                  }}
-                                >
-                                  {/* 앞면 */}
-                                  <div
-                                    className={`absolute inset-0 p-3 border rounded-lg flex flex-col justify-between backface-hidden ${
-                                      selected
-                                        ? "border-[#d8de69] bg-[#d8de69]/10"
-                                        : "hover:border-gray-400"
-                                    }`}
-                                    style={{ backfaceVisibility: "hidden" }}
-                                  >
-                                    <div className="space-y-1">
-                                      <h4 className="font-semibold text-sm leading-tight">
-                                        {base.name}
-                                      </h4>
-                                      {/* <p className="text-xs text-gray-600">
-                                        단백질 {base.protein}g
-                                      </p>
-                                      <p className="text-xs text-gray-600">
-                                        탄수화물 {base.carbs}g
-                                      </p>
-                                      <p className="text-xs text-gray-600">
-                                        지방 {base.fat}g
-                                      </p> */}
-                                    </div>
-                                  </div>
-
-                                  {/* 뒷면 */}
-                                  <div
-                                    className="absolute inset-0 p-3 border border-[#d8de69] bg-[#d8de69]/10 rounded-lg flex flex-col justify-between backface-hidden"
-                                    style={{
-                                      backfaceVisibility: "hidden",
-                                      transform: "rotateY(180deg)",
-                                    }}
-                                  >
-                                    {base.image ? (
-                                      <div className="absolute inset-0 rounded-lg overflow-hidden">
-                                        <img
-                                          src={base.image}
-                                          alt={base.name}
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <div className="flex-1 flex items-center justify-center">
-                                        <div className="text-center">
-                                          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-2 mx-auto">
-                                            <span className="text-2xl">🍽️</span>
-                                          </div>
-                                          <h4 className="font-semibold text-xs text-primary truncate px-1 overflow-hidden">
-                                            {base.name}
-                                          </h4>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {baseToppings.map((base) => {
+                      const selected = selectedBase?.id === base.id;
+                      return (
+                        <div
+                          key={base.id}
+                          className="aspect-square cursor-pointer"
+                          onClick={() => handleBaseSelect(base)}
+                          style={{ perspective: "1000px" }}
+                        >
+                          <div
+                            className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+                              selected ? "rotate-y-180" : ""
+                            }`}
+                            style={{
+                              transformStyle: "preserve-3d",
+                              transform: selected
+                                ? "rotateY(180deg)"
+                                : "rotateY(0deg)",
+                            }}
+                          >
+                            {/* 앞면 */}
+                            <div
+                              className={`absolute inset-0 p-3 border rounded-lg flex flex-col justify-between backface-hidden ${
+                                selected
+                                  ? "border-[#d8de69] bg-[#d8de69]/10"
+                                  : "hover:border-gray-400"
+                              }`}
+                              style={{ backfaceVisibility: "hidden" }}
+                            >
+                              <div className="space-y-1">
+                                <h4 className="font-semibold text-sm leading-tight">
+                                  {base.name}
+                                </h4>
                               </div>
-                            );
-                          })}
-                      </TabsContent>
-                    ))}
-                  </Tabs>
+                            </div>
+
+                            {/* 뒷면 */}
+                            <div
+                              className="absolute inset-0 p-3 border border-[#d8de69] bg-[#d8de69]/10 rounded-lg flex flex-col justify-between backface-hidden"
+                              style={{
+                                backfaceVisibility: "hidden",
+                                transform: "rotateY(180deg)",
+                              }}
+                            >
+                              {base.image ? (
+                                <div className="absolute inset-0 rounded-lg overflow-hidden">
+                                  <img
+                                    src={base.image}
+                                    alt={base.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center justify-center h-full p-2">
+                                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-1">
+                                    <span className="text-lg">🍽️</span>
+                                  </div>
+                                  <h4 className="font-semibold text-xs text-primary text-center leading-tight break-words">
+                                    {base.name}
+                                  </h4>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </TabsContent>
 
+                {/* Main Tab */}
                 <TabsContent
-                  value="toppings"
+                  value="main"
+                  className="mt-4 max-h-[60vh] sm:max-h-96 overflow-y-auto pb-4"
+                >
+                  <h3 className="text-sm font-medium mb-4">
+                    메인 재료를 선택해주세요 (단백질)
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {mainToppings
+                      .filter((topping) => topping.category === "protein")
+                      .map((topping) => {
+                        const selected = selectedToppings.find(
+                          (t) => t.topping.id === topping.id
+                        );
+                        return (
+                          <div
+                            key={topping.id}
+                            className="aspect-square cursor-pointer"
+                            onClick={() => handleToppingToggle(topping)}
+                            style={{ perspective: "1000px" }}
+                          >
+                            <div
+                              className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+                                selected ? "rotate-y-180" : ""
+                              }`}
+                              style={{
+                                transformStyle: "preserve-3d",
+                                transform: selected
+                                  ? "rotateY(180deg)"
+                                  : "rotateY(0deg)",
+                              }}
+                            >
+                              {/* 앞면 */}
+                              <div
+                                className={`absolute inset-0 p-3 border rounded-lg flex flex-col justify-between backface-hidden ${
+                                  selected
+                                    ? "border-[#d8de69] bg-[#d8de69]/10"
+                                    : "hover:border-gray-400"
+                                }`}
+                                style={{ backfaceVisibility: "hidden" }}
+                              >
+                                <div className="space-y-1">
+                                  <h4 className="font-semibold text-sm leading-tight">
+                                    {topping.name}
+                                  </h4>
+                                </div>
+                              </div>
+
+                              {/* 뒷면 */}
+                              <div
+                                className="absolute inset-0 p-3 border border-[#d8de69] bg-[#d8de69]/10 rounded-lg flex flex-col justify-between backface-hidden"
+                                style={{
+                                  backfaceVisibility: "hidden",
+                                  transform: "rotateY(180deg)",
+                                }}
+                              >
+                                {topping.image ? (
+                                  <div className="absolute inset-0 rounded-lg overflow-hidden">
+                                    <img
+                                      src={topping.image}
+                                      alt={topping.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center h-full p-2">
+                                    <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-1">
+                                      <span className="text-lg">🍽️</span>
+                                    </div>
+                                    <h4 className="font-semibold text-xs text-primary text-center leading-tight break-words">
+                                      {topping.name}
+                                    </h4>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </TabsContent>
+
+                {/* Topping Tab */}
+                <TabsContent
+                  value="topping"
                   className="mt-4 max-h-[60vh] sm:max-h-96 overflow-y-auto pb-4"
                 >
                   <h3 className="text-sm font-medium mb-4">
                     토핑을 선택해주세요
                   </h3>
-                  <Tabs defaultValue="protein">
-                    <TabsList className="grid w-full grid-cols-5 mb-4">
-                      <TabsTrigger
-                        value="protein"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        단백질
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="vegetable"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        야채
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="cheese"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        치즈
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="nuts"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        견과류
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="fruit"
-                        className="data-[state=active]:!bg-[#d8de69] data-[state=active]:!text-black"
-                      >
-                        과일
-                      </TabsTrigger>
-                    </TabsList>
-                    {["protein", "vegetable", "cheese", "nuts", "fruit"].map(
-                      (category) => (
-                        <TabsContent
-                          key={category}
-                          value={category}
-                          className="grid grid-cols-3 gap-3 mt-2"
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* 모두 선택 버튼 */}
+                    <div
+                      className="aspect-square cursor-pointer"
+                      onClick={() => {
+                        const allSelected = toppingItems.every(item => 
+                          selectedToppings.find(t => t.topping.id === item.id)
+                        );
+                        if (allSelected) {
+                          // 모두 선택된 상태면 모두 해제
+                          setSelectedToppings(prev => 
+                            prev.filter(t => !toppingItems.find(item => item.id === t.topping.id))
+                          );
+                        } else {
+                          // 일부 또는 아무것도 선택 안된 상태면 모두 선택
+                          const newSelections = toppingItems
+                            .filter(item => !selectedToppings.find(t => t.topping.id === item.id))
+                            .map(item => ({ topping: item, quantity: 1 }));
+                          setSelectedToppings(prev => [...prev, ...newSelections]);
+                        }
+                      }}
+                      style={{ perspective: "1000px" }}
+                    >
+                      <div className="relative w-full h-full">
+                        <div
+                          className={`absolute inset-0 p-3 border rounded-lg flex flex-col justify-between ${
+                            toppingItems.every(item => 
+                              selectedToppings.find(t => t.topping.id === item.id)
+                            )
+                              ? "border-[#d8de69] bg-[#d8de69]/10"
+                              : "hover:border-gray-400"
+                          }`}
                         >
-                          {mainToppings
-                            .filter((topping) => topping.category === category)
-                            .map((topping) => {
-                              const selected = selectedToppings.find(
-                                (t) => t.topping.id === topping.id
-                              );
-                              return (
-                                <div
-                                  key={topping.id}
-                                  className="aspect-square cursor-pointer"
-                                  onClick={() => handleToppingToggle(topping)}
-                                  style={{ perspective: "1000px" }}
-                                >
-                                  <div
-                                    className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
-                                      selected ? "rotate-y-180" : ""
-                                    }`}
-                                    style={{
-                                      transformStyle: "preserve-3d",
-                                      transform: selected
-                                        ? "rotateY(180deg)"
-                                        : "rotateY(0deg)",
-                                    }}
-                                  >
-                                    {/* 앞면 */}
-                                    <div
-                                      className={`absolute inset-0 p-3 border rounded-lg flex flex-col justify-between backface-hidden ${
-                                        selected
-                                          ? "border-[#d8de69] bg-[#d8de69]/10"
-                                          : "hover:border-gray-400"
-                                      }`}
-                                      style={{ backfaceVisibility: "hidden" }}
-                                    >
-                                      <div className="space-y-1">
-                                        <h4 className="font-semibold text-sm leading-tight">
-                                          {topping.name}
-                                        </h4>
-                                        {/* <p className="text-xs text-gray-600">
-                                          단백질 {topping.protein}g
-                                        </p>
-                                        <p className="text-xs text-gray-600">
-                                          탄수화물 {topping.carbs}g
-                                        </p>
-                                        <p className="text-xs text-gray-600">
-                                          지방 {topping.fat}g
-                                        </p> */}
-                                      </div>
-                                    </div>
+                          <div className="flex items-center justify-center h-full">
+                            <h4 className="font-semibold text-sm leading-tight text-center">
+                              {toppingItems.every(item => 
+                                selectedToppings.find(t => t.topping.id === item.id)
+                              ) ? "모두 해제" : "모두 선택"}
+                            </h4>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {toppingItems.map((topping) => {
+                      const selected = selectedToppings.find(
+                        (t) => t.topping.id === topping.id
+                      );
+                      return (
+                        <div
+                          key={topping.id}
+                          className="aspect-square cursor-pointer"
+                          onClick={() => handleToppingToggle(topping)}
+                          style={{ perspective: "1000px" }}
+                        >
+                          <div
+                            className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+                              selected ? "rotate-y-180" : ""
+                            }`}
+                            style={{
+                              transformStyle: "preserve-3d",
+                              transform: selected
+                                ? "rotateY(180deg)"
+                                : "rotateY(0deg)",
+                            }}
+                          >
+                            {/* 앞면 */}
+                            <div
+                              className={`absolute inset-0 p-3 border rounded-lg flex flex-col justify-between backface-hidden ${
+                                selected
+                                  ? "border-[#d8de69] bg-[#d8de69]/10"
+                                  : "hover:border-gray-400"
+                              }`}
+                              style={{ backfaceVisibility: "hidden" }}
+                            >
+                              <div className="space-y-1">
+                                <h4 className="font-semibold text-sm leading-tight">
+                                  {topping.name}
+                                </h4>
+                              </div>
+                            </div>
 
-                                    {/* 뒷면 */}
-                                    <div
-                                      className="absolute inset-0 p-3 border border-[#d8de69] bg-[#d8de69]/10 rounded-lg flex flex-col justify-between backface-hidden"
-                                      style={{
-                                        backfaceVisibility: "hidden",
-                                        transform: "rotateY(180deg)",
-                                      }}
-                                    >
-                                      {topping.image ? (
-                                        <div className="absolute inset-0 rounded-lg overflow-hidden">
-                                          <img
-                                            src={topping.image}
-                                            alt={topping.name}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        </div>
-                                      ) : (
-                                        <div className="flex-1 flex items-center justify-center">
-                                          <div className="text-center">
-                                            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-2 mx-auto">
-                                              <span className="text-2xl">
-                                                🍽️
-                                              </span>
-                                            </div>
-                                            <h4 className="font-semibold text-xs text-primary truncate px-1">
-                                              {topping.name}
-                                            </h4>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
+                            {/* 뒷면 */}
+                            <div
+                              className="absolute inset-0 border border-[#d8de69] bg-[#d8de69]/10 rounded-lg overflow-hidden backface-hidden"
+                              style={{
+                                backfaceVisibility: "hidden",
+                                transform: "rotateY(180deg)",
+                              }}
+                            >
+                              {topping.image ? (
+                                <img
+                                  src={topping.image}
+                                  alt={topping.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-[#d8de69]/20 flex items-center justify-center">
+                                  <span className="text-4xl">🥗</span>
                                 </div>
-                              );
-                            })}
-                        </TabsContent>
-                      )
-                    )}
-                  </Tabs>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </TabsContent>
+
+                {/* Sauce Tab */}
+                <TabsContent
+                  value="sauce"
+                  className="mt-4 max-h-[60vh] sm:max-h-96 overflow-y-auto pb-4"
+                >
+                  <h3 className="text-sm font-medium mb-4">
+                    소스를 선택해주세요
+                  </h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {sauceToppings.map((sauce) => {
+                      const selected = selectedToppings.find(
+                        (t) => t.topping.id === sauce.id
+                      );
+                      return (
+                        <div
+                          key={sauce.id}
+                          className="aspect-square cursor-pointer"
+                          onClick={() => handleToppingToggle(sauce)}
+                          style={{ perspective: "1000px" }}
+                        >
+                          <div
+                            className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+                              selected ? "rotate-y-180" : ""
+                            }`}
+                            style={{
+                              transformStyle: "preserve-3d",
+                              transform: selected
+                                ? "rotateY(180deg)"
+                                : "rotateY(0deg)",
+                            }}
+                          >
+                            {/* 앞면 */}
+                            <div
+                              className={`absolute inset-0 p-3 border rounded-lg flex flex-col justify-between backface-hidden ${
+                                selected
+                                  ? "border-[#d8de69] bg-[#d8de69]/10"
+                                  : "hover:border-gray-400"
+                              }`}
+                              style={{ backfaceVisibility: "hidden" }}
+                            >
+                              <div className="space-y-1">
+                                <h4 className="font-semibold text-sm leading-tight">
+                                  {sauce.name}
+                                </h4>
+                              </div>
+                            </div>
+
+                            {/* 뒷면 */}
+                            <div
+                              className="absolute inset-0 p-3 border border-[#d8de69] bg-[#d8de69]/10 rounded-lg flex flex-col justify-between backface-hidden"
+                              style={{
+                                backfaceVisibility: "hidden",
+                                transform: "rotateY(180deg)",
+                              }}
+                            >
+                              <div className="w-full h-full bg-[#d8de69]/20 flex items-center justify-center">
+                                <span className="text-4xl">🥫</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </TabsContent>
               </Tabs>
             </CardContent>
