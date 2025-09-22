@@ -1,7 +1,7 @@
 import type { MainTopping } from "./toppingTypes";
 
 export const mainToppings: MainTopping[] = [
-  // Protein Category
+  // Main protein ingredients
   {
     id: "main-superior-salmon",
     name: "생연어",
@@ -15,7 +15,7 @@ export const mainToppings: MainTopping[] = [
     sodium: 50,
     price: 3000,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_salmon_2.png",
   },
   {
     id: "main-classic-tuna",
@@ -30,11 +30,11 @@ export const mainToppings: MainTopping[] = [
     sodium: 40,
     price: 3500,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_tuna.png",
   },
   {
     id: "main-beef",
-    name: "소고기",
+    name: "비프",
     type: "main",
     category: "protein",
     calories: 99,
@@ -45,11 +45,11 @@ export const mainToppings: MainTopping[] = [
     sodium: 150,
     price: 2500,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_beef.png",
   },
   {
     id: "main-plump-shrimp",
-    name: "새우",
+    name: "쉬림프",
     type: "main",
     category: "protein",
     calories: 99,
@@ -60,7 +60,7 @@ export const mainToppings: MainTopping[] = [
     sodium: 150,
     price: 2500,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_shrimp.png",
   },
   {
     id: "main-smoked-duck",
@@ -75,7 +75,7 @@ export const mainToppings: MainTopping[] = [
     sodium: 70,
     price: 2000,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_smoked_duck.png",
   },
   {
     id: "main-chicken-thigh",
@@ -90,7 +90,7 @@ export const mainToppings: MainTopping[] = [
     sodium: 70,
     price: 2000,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_chicken_thigh.png",
   },
   {
     id: "main-chicken-breast",
@@ -104,24 +104,40 @@ export const mainToppings: MainTopping[] = [
     fiber: 3,
     sodium: 7,
     price: 1500,
-    isVegan: true,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_chicken_breast.png",
   },
   {
-    id: "main-tofu-mushroom",
-    name: "두부&버섯",
+    id: "main-tofu",
+    name: "두부",
     type: "main",
     category: "protein",
-    calories: 143,
-    protein: 13,
-    carbs: 1,
-    fat: 10,
-    fiber: 0,
-    sodium: 140,
+    calories: 70,
+    protein: 8,
+    carbs: 2,
+    fat: 4,
+    fiber: 1,
+    sodium: 7,
     price: 1000,
+    isVegan: true,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_tofu.png",
+  },
+  {
+    id: "main-mushroom",
+    name: "버섯",
+    type: "main",
+    category: "protein",
+    calories: 22,
+    protein: 3,
+    carbs: 3,
+    fat: 0.3,
+    fiber: 1,
+    sodium: 5,
+    price: 800,
+    isVegan: true,
+    isGlutenFree: true,
+    image: "/icons/icon_mushroom.png",
   },
 
   // Vegetable Category
@@ -139,7 +155,7 @@ export const mainToppings: MainTopping[] = [
     price: 2000,
     isVegan: true,
     isGlutenFree: true,
-    image: "https://cdn.imweb.me/thumbnail/20250706/a351a07bd7e7b.jpg",
+    image: "/icons/icon_avocado.png",
   },
   {
     id: "main-edamame",
@@ -172,8 +188,7 @@ export const mainToppings: MainTopping[] = [
     price: 800,
     isVegan: true,
     isGlutenFree: true,
-    image:
-      "https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=200&h=200&fit=crop&crop=center",
+    image: "/icons/icon_corn.png",
   },
   {
     id: "main-cucumber",
@@ -206,8 +221,7 @@ export const mainToppings: MainTopping[] = [
     price: 600,
     isVegan: true,
     isGlutenFree: true,
-    image:
-      "https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=200&h=200&fit=crop&crop=center",
+    image: "/icons/icon_tomato.png",
   },
   {
     id: "main-carrot",

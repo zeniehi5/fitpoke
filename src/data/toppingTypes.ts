@@ -29,4 +29,20 @@ export interface MainTopping {
   image?: string;
 }
 
-export type Topping = BaseTopping | MainTopping;
+export interface SauceTopping {
+  id: string;
+  name: string;
+  type: 'sauce';
+  category: 'sauce';
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  sodium?: number;
+  price: number;
+  isGlutenFree?: boolean;
+  image?: string;
+}
+
+export type Topping = BaseTopping | MainTopping | SauceTopping;
