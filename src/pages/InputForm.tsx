@@ -29,6 +29,7 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import type { UserProfile } from "@/types/nutrition";
 
 const goalOptions = [
   { label: "린 메스업", value: "lean-massup" },
@@ -44,33 +45,39 @@ const activityLevelOptions = [
   { label: "매우 활발한 활동 (하루 2회 이상)", value: "very-active" },
 ] as const;
 
+const numberInRange = (
+  label: string,
+  unit: string,
+  min: number,
+  max: number
+) =>
+  z.preprocess(
+    (val) => (val === "" || val == null ? undefined : Number(val)),
+    z
+      .number({ message: `${label}를 입력해주세요` })
+      .min(min, `${label}는 ${min}${unit} 이상이어야 해요`)
+      .max(max, `${label}는 ${max}${unit} 이하여야 해요`)
+  );
+
 const FormSchema = z.object({
-  age: z.preprocess(
-    (val) => (val === "" || val == null ? undefined : Number(val)),
-    z.number().refine((val) => !isNaN(val), {
-      message: "나이를 입력해주세요",
-    })
+  age: numberInRange("나이", "세", 10, 100).pipe(
+    z.number().int("나이는 정수로 입력해주세요")
   ),
 
-  gender: z.string().min(1, "성별을 선택해주세요"),
+  gender: z.enum(["male", "female"], { message: "성별을 선택해주세요" }),
 
-  height: z.preprocess(
-    (val) => (val === "" || val == null ? undefined : Number(val)),
-    z.number().refine((val) => !isNaN(val), {
-      message: "키를 입력해주세요",
-    })
+  height: numberInRange("키", "cm", 100, 250),
+
+  weight: numberInRange("몸무게", "kg", 20, 300),
+
+  goal: z.enum(["lean-massup", "bulkup", "fat-loss"], {
+    message: "식단 목표를 선택해주세요",
+  }),
+
+  activityLevel: z.enum(
+    ["sedentary", "light", "moderate", "active", "very-active"],
+    { message: "활동 수준을 선택해주세요" }
   ),
-
-  weight: z.preprocess(
-    (val) => (val === "" || val == null ? undefined : Number(val)),
-    z.number().refine((val) => !isNaN(val), {
-      message: "몸무게를 입력해주세요",
-    })
-  ),
-
-  goal: z.string().min(1, "식단 목표를 선택해주세요"),
-  
-  activityLevel: z.string().min(1, "활동 수준을 선택해주세요"),
 });
 
 export default function InputForm() {
@@ -79,7 +86,7 @@ export default function InputForm() {
     resolver: zodResolver(FormSchema),
   });
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
+  const onSubmit = (data: UserProfile) => {
     navigate("/custom", { state: { userData: data } });
   };
 
@@ -248,9 +255,7 @@ export default function InputForm() {
                                   <CommandItem
                                     key={g.value}
                                     value={g.label}
-                                    onSelect={() =>
-                                      form.setValue("goal", g.value)
-                                    }
+                                    onSelect={() => field.onChange(g.value)}
                                   >
                                     {g.label}
                                     <Check
@@ -309,9 +314,7 @@ export default function InputForm() {
                                   <CommandItem
                                     key={a.value}
                                     value={a.label}
-                                    onSelect={() =>
-                                      form.setValue("activityLevel", a.value)
-                                    }
+                                    onSelect={() => field.onChange(a.value)}
                                   >
                                     {a.label}
                                     <Check
