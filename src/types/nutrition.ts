@@ -1,3 +1,14 @@
+import type { ActivityLevel, Gender, Goal } from "@/utils/calculator";
+
+export interface UserProfile {
+  gender: Gender;
+  age: number;
+  height: number;
+  weight: number;
+  goal: Goal;
+  activityLevel: ActivityLevel;
+}
+
 export interface NutritionGoals {
   calories: number;
   protein: number;

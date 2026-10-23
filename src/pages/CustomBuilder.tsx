@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,8 +12,27 @@ import {
   calculateBMR,
   calculateRecommendedCalories,
   calculateBMI,
+  calculateTargetCalories,
+  calculateMealGoals,
+  getBmiStatus,
+  GOAL_PROFILES,
+  MEALS_PER_DAY,
 } from "@/utils/calculator";
-import type { NutritionProgress, NutritionGoals } from "@/types/nutrition";
+import type {
+  NutritionProgress,
+  NutritionGoals,
+  UserProfile,
+} from "@/types/nutrition";
+
+const NUTRIENT_KEYS = ["calories", "protein", "carbs", "fat", "fiber"] as const;
+
+const emptyNutrition = (): NutritionGoals => ({
+  calories: 0,
+  protein: 0,
+  carbs: 0,
+  fat: 0,
+  fiber: 0,
+});
 import { ChevronDown, User, Activity, Calculator } from "lucide-react";
 
 interface SelectedTopping {
@@ -24,7 +43,7 @@ interface SelectedTopping {
 export default function CustomBuilder() {
   const location = useLocation();
   const navigate = useNavigate();
-  const userData = location.state?.userData;
+  const userData = location.state?.userData as UserProfile | undefined;
 
   const [panelState, setPanelState] = useState<'expanded' | 'compact' | 'hidden'>('expanded');
   const [isDragging, setIsDragging] = useState(false);
@@ -36,26 +55,14 @@ export default function CustomBuilder() {
   const [selectedToppings, setSelectedToppings] = useState<SelectedTopping[]>(
     []
   );
-  const [nutritionProgress, setNutritionProgress] = useState<NutritionProgress>(
-    {
-      current: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
-      goals: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
-      percentages: { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
-    }
-  );
-
-  const [userStats, setUserStats] = useState({
-    bmi: 0,
-    bmr: 0,
-    dailyCalories: 0,
-    bmiStatus: "",
-  });
-
   useEffect(() => {
     if (!userData) {
-      navigate("/form");
-      return;
+      navigate("/form", { replace: true });
     }
+  }, [userData, navigate]);
+
+  const userStats = useMemo(() => {
+    if (!userData) return null;
 
     const bmi = calculateBMI(userData.height, userData.weight);
     const bmr = calculateBMR(
@@ -64,99 +71,47 @@ export default function CustomBuilder() {
       userData.weight,
       userData.age
     );
-    const dailyCalories = calculateRecommendedCalories(
+    const maintenanceCalories = calculateRecommendedCalories(
       bmr,
       userData.activityLevel
     );
-    const perMealCalories = Math.round(dailyCalories / 2.5); // 하루 2.5끼 기준
+    const dailyCalories = calculateTargetCalories(
+      maintenanceCalories,
+      userData.goal
+    );
 
-    // BMI 상태 판단
-    let bmiStatus = "";
-    if (bmi < 18.5) bmiStatus = "저체중";
-    else if (bmi < 23) bmiStatus = "정상";
-    else if (bmi < 25) bmiStatus = "과체중";
-    else if (bmi < 30) bmiStatus = "비만";
-    else bmiStatus = "고도비만";
-
-    setUserStats({
+    return {
       bmi,
       bmr,
+      maintenanceCalories,
       dailyCalories,
-      bmiStatus,
-    });
-
-    const perMealGoals: NutritionGoals = {
-      calories: perMealCalories,
-      protein: Math.round((perMealCalories * 0.3) / 4),
-      carbs: Math.round((perMealCalories * 0.4) / 4),
-      fat: Math.round((perMealCalories * 0.3) / 9),
-      fiber: 10,
+      bmiStatus: getBmiStatus(bmi),
+      mealGoals: calculateMealGoals(dailyCalories, userData.goal),
     };
+  }, [userData]);
 
-    console.log('perMealCalories:', perMealCalories);
-    console.log('perMealGoals:', perMealGoals);
+  const nutritionProgress = useMemo<NutritionProgress>(() => {
+    const goals = userStats?.mealGoals ?? emptyNutrition();
+    const current = emptyNutrition();
+    const selected = [
+      ...(selectedBase ? [selectedBase] : []),
+      ...selectedToppings.map(({ topping }) => topping),
+    ];
 
-    setNutritionProgress((prev) => ({
-      ...prev,
-      goals: perMealGoals,
-    }));
-  }, [userData, navigate]);
-
-  useEffect(() => {
-    calculateNutrition();
-  }, [selectedBase, selectedToppings]);
-
-  const calculateNutrition = () => {
-    let current: NutritionGoals = {
-      calories: 0,
-      protein: 0,
-      carbs: 0,
-      fat: 0,
-      fiber: 0,
-    };
-
-    if (selectedBase) {
-      current.calories += selectedBase.calories;
-      current.protein += selectedBase.protein;
-      current.carbs += selectedBase.carbs;
-      current.fat += selectedBase.fat;
-      current.fiber += selectedBase.fiber;
+    for (const item of selected) {
+      for (const key of NUTRIENT_KEYS) {
+        current[key] += item[key];
+      }
     }
 
-    selectedToppings.forEach(({ topping }) => {
-      current.calories += topping.calories;
-      current.protein += topping.protein;
-      current.carbs += topping.carbs;
-      current.fat += topping.fat;
-      current.fiber += topping.fiber;
-    });
+    const percentages = emptyNutrition();
+    for (const key of NUTRIENT_KEYS) {
+      percentages[key] =
+        goals[key] > 0 ? Math.min((current[key] / goals[key]) * 100, 100) : 0;
+    }
 
-    const percentages = {
-      calories: nutritionProgress.goals.calories > 0 ? Math.min(
-        (current.calories / nutritionProgress.goals.calories) * 100,
-        100
-      ) : 0,
-      protein: nutritionProgress.goals.protein > 0 ? Math.min(
-        (current.protein / nutritionProgress.goals.protein) * 100,
-        100
-      ) : 0,
-      carbs: nutritionProgress.goals.carbs > 0 ? Math.min(
-        (current.carbs / nutritionProgress.goals.carbs) * 100,
-        100
-      ) : 0,
-      fat: nutritionProgress.goals.fat > 0 ? Math.min((current.fat / nutritionProgress.goals.fat) * 100, 100) : 0,
-      fiber: nutritionProgress.goals.fiber > 0 ? Math.min(
-        (current.fiber / nutritionProgress.goals.fiber) * 100,
-        100
-      ) : 0,
-    };
-
-    setNutritionProgress((prev) => ({
-      current,
-      goals: prev.goals,
-      percentages,
-    }));
-  };
+    return { current, goals, percentages };
+  }, [userStats, selectedBase, selectedToppings]);
 
   const handleBaseSelect = (base: BaseTopping) => {
     setSelectedBase(base);
@@ -711,7 +666,7 @@ export default function CustomBuilder() {
 
           <div className="container mx-auto px-6 pb-8 max-w-7xl">
             {/* User Stats Section - Only show when expanded */}
-            {panelState === 'expanded' && userData && (
+            {panelState === 'expanded' && userData && userStats && (
               <div className="mb-6 space-y-4">
                 {/* User Info */}
                 <div className="bg-white/90 rounded-lg p-4 shadow-sm">
@@ -777,7 +732,15 @@ export default function CustomBuilder() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 text-sm">
-                        1일 권장 칼로리
+                        1일 유지 칼로리
+                      </span>
+                      <span className="font-semibold">
+                        {userStats.maintenanceCalories} kcal
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm">
+                        1일 목표 칼로리 ({GOAL_PROFILES[userData.goal].label})
                       </span>
                       <span className="font-semibold">
                         {userStats.dailyCalories} kcal
@@ -788,7 +751,7 @@ export default function CustomBuilder() {
                         1끼 권장 칼로리
                       </span>
                       <span className="font-semibold text-primary">
-                        {Math.round(userStats.dailyCalories / 2.5)} kcal
+                        {userStats.mealGoals.calories} kcal
                       </span>
                     </div>
                   </div>
@@ -818,7 +781,7 @@ export default function CustomBuilder() {
                     영양 정보 (1끼 기준)
                   </h3>
                   <p className="text-xs text-gray-500">
-                    하루 2.5끼 기준, 한 끼 권장량
+                    하루 {MEALS_PER_DAY}끼 기준, 한 끼 권장량
                   </p>
                 </div>
               </div>
@@ -833,7 +796,7 @@ export default function CustomBuilder() {
                     영양 정보 (1끼 기준)
                   </h3>
                   <p className="text-xs text-gray-500 mt-1">
-                    하루 2.5끼 기준, 한 끼 권장량
+                    하루 {MEALS_PER_DAY}끼 기준, 한 끼 권장량
                   </p>
                 </div>
               )}
